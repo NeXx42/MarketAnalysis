@@ -1,3 +1,6 @@
 obj
 appsettings.*.json
 .env
+bin**
+debug
+Data/

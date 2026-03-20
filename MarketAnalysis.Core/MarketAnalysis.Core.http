@@ -1,6 +1,0 @@
-@MarketAnalysis.Core_HostAddress = http://localhost:5197
-
-GET {{MarketAnalysis.Core_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
