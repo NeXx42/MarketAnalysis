@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="MarketAnalysis.API/MarketAnalysis.API.csproj" />
+  <Project Path="MarketAnalysis.Core/MarketAnalysis.Core.csproj" />
+  <Project Path="MarketAnalysis.Data/MarketAnalysis.Data.csproj" />
+  <Project Path="MarketAnalysis.Schedular/MarketAnalysis.Schedular.csproj" />
+  <Project Path="MarketAnalysis.Utils/MarketAnalysis.Utils.csproj" />
+</Solution>
