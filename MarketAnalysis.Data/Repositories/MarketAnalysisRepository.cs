@@ -1,5 +1,6 @@
 using MarketAnalysis.Core.Models;
 using MarketAnalysis.Data.Context;
+using Microsoft.EntityFrameworkCore;
 
 public class MarketAnalysisRepository : IMarketAnalysisRepository
 {
@@ -8,6 +9,11 @@ public class MarketAnalysisRepository : IMarketAnalysisRepository
     public MarketAnalysisRepository(MarketAnalysisDbContext db)
     {
         _db = db;
+    }
+
+    public async Task<AssetPrice[]> GetAssetPricesAsync(AssetType assetType)
+    {
+        return await _db.AssetPrices.Where(x => x.Asset == assetType).ToArrayAsync();
     }
 
     public async Task SaveAssetPrices(AssetPrice[] prices, AssetType asset, bool clearHistory)
