@@ -14,46 +14,34 @@ public class AlphaVantagePriceFetcher : IPriceFetcher
         _settings = settings;
     }
 
-    public async Task<AssetPrice[]?> FetchFullHistory(string symbol)
+    public async Task<AssetPrice[]?> FetchFullHistory(string symbol, AssetType assetType)
     {
-        WeeklyResponse? res = await GetJson<WeeklyResponse>("TIME_SERIES_WEEKLY", symbol);
+        IMapper? res;
 
-        if (res != null && res.WeeklyTimeSeries != null)
+        switch (symbol)
         {
-            int i = 0;
-            AssetPrice[] prices = new AssetPrice[res.WeeklyTimeSeries.Count];
+            case "OIL":
+                res = await GetJson<OilPricing>("BRENT", "interval=monthly");
+                break;
 
-            foreach (KeyValuePair<string, WeeklyResponse.WeeklyResponse_TimeSeries> entry in res.WeeklyTimeSeries)
-            {
-                DateTime date = DateTime.Parse(entry.Key);
-
-                prices[i++] = new AssetPrice()
-                {
-                    Asset = AssetType.Gold,
-                    Close = entry.Value.Close,
-                    High = entry.Value.High,
-                    Low = entry.Value.Low,
-                    Open = entry.Value.Open,
-                    Date = date
-                };
-            }
-
-            return prices;
+            default:
+                res = await GetJson<WeeklyResponse>("TIME_SERIES_WEEKLY", $"symbol={symbol}");
+                break;
         }
 
-        return null;
+        return res?.Map(assetType);
     }
 
-    public Task<AssetPrice[]?> FetchPricingMonth(string interval)
+    public Task<AssetPrice[]?> FetchPricingMonth(string interval, AssetType assetType)
     {
         throw new NotImplementedException();
     }
 
-    private async Task<T?> GetJson<T>(string function, string symbol)
+    private async Task<T?> GetJson<T>(string function, params string[] parameters)
     {
         using (HttpClient client = new HttpClient())
         {
-            string url = $"{_settings.siteURL}/query?function={function}&symbol={symbol}&apikey={_settings.apiKey}";
+            string url = $"{_settings.siteURL}/query?function={function}&{string.Join("&", parameters)}&apikey={_settings.apiKey}";
             HttpResponseMessage res = await client.GetAsync(url);
 
             if (res.StatusCode != System.Net.HttpStatusCode.OK)
@@ -65,13 +53,75 @@ public class AlphaVantagePriceFetcher : IPriceFetcher
         }
     }
 
-    private class WeeklyResponse
+
+    private interface IMapper
+    {
+        public AssetPrice[]? Map(AssetType type);
+    }
+
+    private class OilPricing : IMapper
+    {
+        [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("interval")] public string Interval { get; set; } = string.Empty;
+        [JsonPropertyName("unit")] public string Unit { get; set; } = string.Empty;
+
+        [JsonPropertyName("data")] public Datapoint[]? Data { get; set; }
+
+        public AssetPrice[]? Map(AssetType type)
+        {
+            return Data?.Select(x =>
+            {
+                decimal val = decimal.Parse(x.Value);
+
+                return new AssetPrice()
+                {
+                    Asset = type,
+                    Date = DateTime.Parse(x.Date),
+                    Close = val,
+                    Open = val,
+                    High = val,
+                    Low = val,
+                };
+            }).ToArray();
+        }
+
+        public class Datapoint
+        {
+            [JsonPropertyName("date")] public string Date { get; set; } = string.Empty;
+            [JsonPropertyName("value")] public string Value { get; set; } = string.Empty;
+        }
+    }
+
+    private class WeeklyResponse : IMapper
     {
         [JsonPropertyName("Meta Data")]
         public WeeklyResponse_MetaData? MetaData { get; set; }
 
         [JsonPropertyName("Weekly Time Series")]
         public Dictionary<string, WeeklyResponse_TimeSeries>? WeeklyTimeSeries { get; set; }
+
+        public AssetPrice[] Map(AssetType type)
+        {
+            int i = 0;
+            AssetPrice[] prices = new AssetPrice[WeeklyTimeSeries!.Count];
+
+            foreach (KeyValuePair<string, WeeklyResponse.WeeklyResponse_TimeSeries> entry in WeeklyTimeSeries)
+            {
+                DateTime date = DateTime.Parse(entry.Key);
+
+                prices[i++] = new AssetPrice()
+                {
+                    Asset = type,
+                    Close = entry.Value.Close,
+                    High = entry.Value.High,
+                    Low = entry.Value.Low,
+                    Open = entry.Value.Open,
+                    Date = date
+                };
+            }
+
+            return prices;
+        }
 
         public class WeeklyResponse_MetaData
         {

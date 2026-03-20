@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using MarketAnalysis.Core.Models;
 
 public class SchedularService
@@ -13,11 +14,18 @@ public class SchedularService
 
     public async Task ImportFull()
     {
-        AssetPrice[]? prices = await _priceFetcher.FetchFullHistory("IBM");
+        AssetPrice[]? prices = await _priceFetcher.FetchFullHistory("OIL", AssetType.Oil);
+        await SavePrices(prices, AssetType.Oil);
 
-        if (prices != null)
+        prices = await _priceFetcher.FetchFullHistory("VOO", AssetType.Shares);
+        await SavePrices(prices, AssetType.Shares);
+
+        async Task SavePrices(AssetPrice[]? prices, AssetType type)
         {
-            await _marketAnalysisRepository.SaveAssetPrices(prices, AssetType.Gold, true);
+            if (prices == null)
+                return;
+
+            await _marketAnalysisRepository.SaveAssetPrices(prices, type, true);
         }
     }
 

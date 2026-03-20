@@ -10,21 +10,23 @@ import { graphData } from "@/types/graphData";
 import { AnalysisTrend } from "@/types/analysisTrends";
 
 interface Props {
-    assetType: AssetType
+
 }
 
 export default function (props: Props) {
+
+    const [assetType, setAssetType] = useState(AssetType.Gold);
 
     const [loading, setLoading] = useState(false);
     const [graph, setGraph] = useState<graphData | undefined>(undefined);
 
     useEffect(() => {
         setLoading(true);
-        api.fetchAssetGraph(props.assetType, [AnalysisTrend.AMA])
+        api.fetchAssetGraph(assetType, [AnalysisTrend.AMA])
             .then(setGraph)
             .finally(() => setLoading(false));
 
-    }, [props.assetType])
+    }, [assetType])
 
 
 
@@ -66,7 +68,7 @@ export default function (props: Props) {
             const markers: any[] = [];
             const emaData = graph.trends[AnalysisTrend[AnalysisTrend.AMA]];
 
-            for (let i = 1; i < emaData.length; i++) {
+            for (let i = 1; i < emaData?.length; i++) {
                 const prevShort = emaData[i - 1].ema10;
                 const prevLong = emaData[i - 1].ema50;
 
@@ -115,6 +117,18 @@ export default function (props: Props) {
             {!loading && (
                 <div ref={chartContainerRef} />
             )}
+
+            <select value={assetType} onChange={(e) => setAssetType(Number(e.target.value))}>
+                {
+                    Object.keys(AssetType)
+                        .filter(key => !isNaN(Number(key)))
+                        .map(key => (
+                            <option key={key} value={key}>
+                                {AssetType[Number(key)]}
+                            </option>
+                        ))
+                }
+            </select>
         </div>
     );
 };
