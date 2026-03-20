@@ -1,8 +1,10 @@
+import { AnalysisTrend } from "./analysisTrends";
 import { AssetType } from "./assetType";
 
 export interface graphData {
     assetType: AssetType,
-    datapoints: graphDataPoint[]
+    datapoints: graphDataPoint[],
+    trends: Record<string, any>
 }
 
 export interface graphDataPoint {

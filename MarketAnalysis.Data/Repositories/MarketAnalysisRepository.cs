@@ -13,7 +13,7 @@ public class MarketAnalysisRepository : IMarketAnalysisRepository
 
     public async Task<AssetPrice[]> GetAssetPricesAsync(AssetType assetType)
     {
-        return await _db.AssetPrices.Where(x => x.Asset == assetType).ToArrayAsync();
+        return await _db.AssetPrices.Where(x => x.Asset == assetType).OrderBy(x => x.Date).ToArrayAsync();
     }
 
     public async Task SaveAssetPrices(AssetPrice[] prices, AssetType asset, bool clearHistory)

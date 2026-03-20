@@ -4,9 +4,13 @@ import { post, get } from "./api.shared";
 
 import { graphData } from "@/types/graphData";
 import { AssetType } from "@/types/assetType";
+import { AnalysisTrend } from "@/types/analysisTrends";
 
-export async function fetchAssetGraph(assetType: AssetType): Promise<graphData> {
-    const res = await get<graphData>(`graph/${assetType}`);
+export async function fetchAssetGraph(assetType: AssetType, trends: AnalysisTrend[]): Promise<graphData> {
+    const res = await post<graphData>(`graph/${assetType}`, {
+        trends
+    });
+
     return {
         ...res!,
         datapoints: res!.datapoints.map(x => ({

@@ -20,6 +20,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<MarketAnalysisDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<IMarketAnalysisRepository, MarketAnalysisRepository>();
 
+builder.Services.AddScoped<PriceAnalysisService>();
 builder.Services.AddScoped<PriceFetcherService>();
 
 // Add services to the container.
